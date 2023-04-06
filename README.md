@@ -1,2 +1,2 @@
 # SQL_Controle_Academico
-Learning how to use triggers and SQL Server commands
+Learning how to use procedures, triggers and SQL Server commands
