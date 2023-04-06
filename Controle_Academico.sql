@@ -155,16 +155,101 @@ BEGIN
 END
 GO
 
-INSERT into Item_Matricula(ID_Mat, COD_Disc, faltas, situacao) values (3,2,0,'Matriculado')
-INSERT into Item_Matricula(ID_Mat, COD_Disc, faltas, situacao) values (3,1,0,'Matriculado')
+CREATE OR ALTER PROCEDURE CalculaMedia @ID INT, @CODIGO INT
+AS
+BEGIN
+    DECLARE @nota1 decimal(4,2), @nota2 decimal(4,2), @media decimal(4,2)
+
+    SELECT @nota1 = nota1, @nota2 = nota2 FROM Item_Matricula WHERE @id = ID_Mat AND @codigo = COD_Disc
+
+    SET @media = (@nota1+ @nota2) / 2
+
+    UPDATE Item_matricula SET media = @media WHERE @id = ID_Mat AND @codigo = COD_Disc
+
+END;
+GO
+
+EXEC.Calculamedia 1,1
 
 UPDATE Item_Matricula SET nota1 = 7.5, nota2 = 5.7 WHERE ID_Mat = 3 AND COD_Disc = 2;
 UPDATE Item_Matricula SET nota1 = 6.9, nota2 = 4.3 WHERE ID_Mat = 3 AND COD_Disc = 1;
 update Item_Matricula set nota1 = 6, nota2 = 3 where COD_Disc = 2 and ID_Mat = 1;
+update Item_Matricula set nota1 = 6, nota2 = 6.4 where COD_Disc = 1 and ID_Mat = 1;
 
 UPDATE Item_Matricula SET faltas = 56 WHERE ID_Mat = 3 AND COD_Disc = 1;
 UPDATE Item_Matricula SET faltas = 40 WHERE ID_Mat = 1 AND COD_Disc = 1;
 UPDATE Item_Matricula SET nota1 = 6, nota2 = 8 WHERE ID_Mat = 2 AND COD_Disc = 1;
 GO
-select * from Item_Matricula
 
+select * from Item_Matricula
+GO
+
+CREATE OR ALTER PROCEDURE IniciarSemestre
+AS
+BEGIN
+    UPDATE Item_Matricula SET 
+        media = null, nota1 = null,
+        nota2 = null, situacao = 'Matriculado',
+        faltas = 0, sub = null
+END;
+GO
+
+EXEC.IniciarSemestre
+GO
+
+CREATE OR ALTER PROCEDURE MatricularAlunoEmMateria @id_Mat INT, @codigo_Disc INT
+AS
+BEGIN
+    DECLARE @idConfirm INT
+    select @idConfirm = ID FROM Matricula WHERE ID = @id_Mat
+
+    if(@idConfirm is not null)
+    BEGIN
+        INSERT INTO Item_Matricula (ID_Mat, COD_Disc, situacao, faltas) values (
+            @id_Mat, @codigo_Disc, 'Matriculado', 0
+        )
+        PRINT('Aluno matriculado com sucesso')
+    END
+    ELSE
+    BEGIN
+        PRINT('Não existe o aluno matriculado')
+    END
+
+END;
+GO
+
+EXEC.MatricularAlunoEmMateria 3,3
+EXEC.MatricularAlunoEmMateria 5,3
+GO
+
+CREATE OR ALTER PROCEDURE CriarAluno @ra varchar(15), @nomeAluno varchar(50)
+AS
+BEGIN
+    
+    INSERT INTO Aluno values (@ra, @nomeAluno)
+
+END;
+GO
+EXEC.CriarAluno '7','Pestana'
+GO
+
+CREATE OR ALTER PROCEDURE MatricularAluno @raAluno varchar(15), @ano int, @semestre int
+AS
+BEGIN
+    DECLARE @raConfirm INT
+    select @raConfirm = ra FROM Aluno WHERE ra = @raAluno
+
+    if(@raConfirm is not null)
+    BEGIN
+        INSERT INTO Matricula values (@raAluno, @ano, @semestre)
+        PRINT('Aluno matriculado com sucesso')
+    END
+    ELSE
+    BEGIN
+        PRINT('Não existe o aluno matriculado')
+    END
+
+END;
+GO
+EXEC.MatricularAluno '7', 2020, 3
+GO
